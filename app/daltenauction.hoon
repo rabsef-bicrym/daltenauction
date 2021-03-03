@@ -25,7 +25,7 @@
 ++  on-init
   ^-  (quip card _this)
   ~&  >  '%daltenauction app is online'
-  =.  state  [%0 `exhibits:daltenauction`~ `current-bids:daltenauction`~ `biddermap:daltenauction`(my :~([0 ['0x0' '0x0' '0x0' '~dalten Collection']])) %.n]
+  =.  state  [%0 `exhibits:daltenauction`~ `current-bids:daltenauction`~ `biddermap:daltenauction`(my :~([0 ['dalten@daltencollective.org' '~dalten Collection']])) %.n]
   `this
 ++  on-save
   ^-  vase 
@@ -53,13 +53,18 @@
       %add-item
     (add-item:hc exhibit.action)
       %bid-item
-    (bid-item:hc crypto-add.action exhibit-id.action bid-amt.action)
+    (bid-item:hc email.action exhibit-id.action bid-amt.action)
+      %add-bidder
+    (add-bidder:hc email.action nick.action)
       %start-over
     ?.  check.action
       `state
-    `state(exhibits ~, current-bids ~, biddermap `biddermap:daltenauction`(my :~([0 ['0x0' '0x0' '0x0' '~dalten Collection']])), allow-bidding %.n)
+    `state(exhibits ~, current-bids ~, biddermap `biddermap:daltenauction`(my :~([0 ['dalten@daltencollective.org' '~dalten Collection']])), allow-bidding %.n)
       %allow-bidding
     `state(allow-bidding %.y)
+      %produce-test-json
+    ~&  >>  "{<(produce-json exhibits.state)>}"
+    `state
     ==
     [cards state]
 --
@@ -73,8 +78,8 @@
 |_  bol=bowl:gall
 ++  add-item
   |=  [inc-ex=exhibit:daltenauction]
-  ^-  (quip card _state)
   |^
+  ^-  (quip card _state)
   ?:  =(~ exhibits)
     :-  ~
     %=  state
@@ -89,15 +94,16 @@
   :-  ~
   %=  state
   exhibits      (~(put by exhibits) next-ex [inc-ex min-bid.inc-ex '~dalten Collection'])
-  current-bids  (~(put by current-bids) inc-ex `bids:daltenauction`(my :~([0 [0 '0x0' min-bid.inc-ex]])))
+  current-bids  (~(put by current-bids) inc-ex `bids:daltenauction`(my :~([0 [0 'dalten@daltencollective.org' min-bid.inc-ex]])))
   ==
   ++  extractor
     |=  [current=[id=@ud [exhibit=exhibit:daltenauction top-bid=@rh top-bidder=@tU]] out=(list exhibit:daltenauction)]
     [exhibit:+:current out]
   --
 ++  bid-item
-  |=  [bidder-address=crypto-add:daltenauction item=@ud bid=@rh]
+  |=  [email=@tU item=@ud bid=@rh]
   |^
+  ^-  (quip card _state)
   ?.  (~(has by exhibits) item)
     ~&  >>>  "Invalid Bid on Non-Existent Item {<item>}"
     `state
@@ -113,37 +119,43 @@
     =/  ex=exhibit:daltenauction    exhibit:(~(got by exhibits) item)
     =/  bid-map=bids:daltenauction  (~(got by current-bids) ex)
     =/  next-bid=@ud                +(i:-:(sort `(list @ud)`~(tap in ~(key by bid-map)) gth))
-    [ex (~(put by bid-map) next-bid [-:(find-user currency.ex) bidder-address bid])]
+    [ex (~(put by bid-map) next-bid [-:(roll ~(tap by biddermap) get-user-by-email) email bid])]
   ++  update-exhibits-map
     =/  ex=exhibit:daltenauction  exhibit:(~(got by exhibits) item)
-    [item [ex bid +:(find-user currency.ex)]]
-  ++  find-user
-  |=  currency-type=currency:daltenauction
-  ?-  currency-type
-    %eth
-  (roll ~(tap by biddermap) get-user-id-eth)
-    %bsv
-  (roll ~(tap by biddermap) get-user-id-bsv)
-    %raven
-  (roll ~(tap by biddermap) get-user-id-raven)
+    [item [ex bid +:(roll ~(tap by biddermap) get-user-by-email)]]
+  ++  get-user-by-email
+    |=  [map-item=[id=@ud email=@tU nic=@tU] user=[@ud @tU]]
+    ^-  [@ud @tU]
+    ?:  =(email.map-item email)
+      =.  user  [id.map-item nic.map-item]
+      user
+    user
+  --
+++  add-bidder
+  |=  [email=@tU nick=@tU]
+  ^-  (quip card _state)
+  =/  next-bidder  +(i:-:(sort `(list @ud)`~(tap in ~(key by biddermap)) gth))
+  :-  ~
+  %=  state
+  biddermap  (~(put by biddermap) next-bidder [email nick])
   ==
-  ++  get-user-id-eth
-    |=  [map-item=[id=@ud eth=@tU bsv=@tU raven=@tU nic=@tU] user=[@ud @tU]]
-    ?:  =(eth.map-item bidder-address)
-      =.  user  [id.map-item nic.map-item]
-      user
-    user
-  ++  get-user-id-bsv
-    |=  [map-item=[id=@ud eth=@tU bsv=@tU raven=@tU nic=@tU] user=[@ud @tU]]
-    ?:  =(bsv.map-item bidder-address)
-      =.  user  [id.map-item nic.map-item]
-      user
-    user
-  ++  get-user-id-raven
-    |=  [map-item=[id=@ud eth=@tU bsv=@tU raven=@tU nic=@tU] user=[@ud @tU]]
-    ?:  =(raven.map-item bidder-address)
-      =.  user  [id.map-item nic.map-item]
-      user
-    user
+++  produce-json
+  |=  exs=exhibits:daltenauction
+  |^
+  ^-  json
+  =/  exhibit-list=(list [id=@ud ex=[title=@tU img=@tU min-bid=@rh cur=?(%eth %bsv %raven)] top-bid=@rh top-bidder=@tU])  ~(tap by exhibits:state)
+  =/  objs=(list json)  (roll exhibit-list object-maker)
+  [%a objs]
+  ++  object-maker
+    |=  [in=[id=@ud ex=[title=@tU img=@tU min-bid=@rh cur=?(%eth %bsv %raven)] top-bid=@rh top-bidder=@tU] out=(list json)]
+    ^-  (list json)
+    :-
+    %-  pairs:enjs:format
+    :~
+    ['title' [%s title.ex.in]]  ['img' [%s img.ex.in]]
+    ['min-bid' [%n ~.1.2]]   ['chain' [%s (crip (scow %tas cur.ex.in))]]
+    ['top-bid' [%n ~.1.3]]   ['top-bidder' [%s top-bidder.in]]
+    ==
+    out
   --
 --
