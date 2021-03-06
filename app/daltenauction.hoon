@@ -68,7 +68,14 @@
     ==
     [cards state]
 --
-++  on-watch  on-watch:def
+++  on-watch
+  |=  =path
+  ^-  (quip card _this)
+  ?+  path  (on-watch:def path)
+    [%auctionsite ~]
+  :_  this
+  ~[[%give %fact ~[path] [%json !>((json (produce-json:hc exhibits)))]]]
+  ==
 ++  on-arvo   on-arvo:def
 ++  on-leave  on-leave:def
 ++  on-peek   on-peek:def
@@ -84,7 +91,7 @@
     :-  ~
     %=  state
     exhibits      (~(put by exhibits) 0 [inc-ex min-bid.inc-ex '~dalten Collection'])
-    current-bids  (~(put by current-bids) inc-ex `bids:daltenauction`(my :~([0 [0 '0x0' min-bid.inc-ex]])))
+    current-bids  (~(put by current-bids) inc-ex `bids:daltenauction`(my :~([0 [0 'dalten@daltencollective.org' min-bid.inc-ex]])))
     ==
   =/  list-exhibits=(list exhibit:daltenauction)  (roll ~(tap by exhibits) extractor)
   =/  next-ex=@ud  +(i:-:(sort `(list @ud)`~(tap in ~(key by exhibits)) gth))
@@ -97,11 +104,11 @@
   current-bids  (~(put by current-bids) inc-ex `bids:daltenauction`(my :~([0 [0 'dalten@daltencollective.org' min-bid.inc-ex]])))
   ==
   ++  extractor
-    |=  [current=[id=@ud [exhibit=exhibit:daltenauction top-bid=@rh top-bidder=@tU]] out=(list exhibit:daltenauction)]
+    |=  [current=[id=@ud [exhibit=exhibit:daltenauction top-bid=@ud top-bidder=@tU]] out=(list exhibit:daltenauction)]
     [exhibit:+:current out]
   --
 ++  bid-item
-  |=  [email=@tU item=@ud bid=@rh]
+  |=  [email=@tU item=@ud bid=@ud]
   |^
   ^-  (quip card _state)
   ?.  (~(has by exhibits) item)
@@ -143,18 +150,19 @@
   |=  exs=exhibits:daltenauction
   |^
   ^-  json
-  =/  exhibit-list=(list [id=@ud ex=[title=@tU img=@tU min-bid=@rh cur=?(%eth %bsv %raven)] top-bid=@rh top-bidder=@tU])  ~(tap by exhibits:state)
+  =/  exhibit-list=(list [id=@ud ex=[title=@tU img=@tU min-bid=@ud artist=@tU uri=@tU cur=?(%eth %bsv %raven)] top-bid=@ud top-bidder=@tU])  ~(tap by exhibits:state)
   =/  objs=(list json)  (roll exhibit-list object-maker)
   [%a objs]
   ++  object-maker
-    |=  [in=[id=@ud ex=[title=@tU img=@tU min-bid=@rh cur=?(%eth %bsv %raven)] top-bid=@rh top-bidder=@tU] out=(list json)]
+    |=  [in=[id=@ud ex=[title=@tU img=@tU min-bid=@ud artist=@tU uri=@tU cur=?(%eth %bsv %raven)] top-bid=@ud top-bidder=@tU] out=(list json)]
     ^-  (list json)
     :-
     %-  pairs:enjs:format
     :~
-    ['title' [%s title.ex.in]]  ['img' [%s img.ex.in]]
-    ['min-bid' [%n ~.1.2]]   ['chain' [%s (crip (scow %tas cur.ex.in))]]
-    ['top-bid' [%n ~.1.3]]   ['top-bidder' [%s top-bidder.in]]
+    ['id' (numb:enjs:format id.in)]    ['title' [%s title.ex.in]]
+    ['image' [%s img.ex.in]]           ['chain' [%s cur.ex.in]]
+    ['artist' [%s artist.ex.in]]       ['topBid' (numb:enjs:format top-bid.in)]
+    ['topBidder' [%s top-bidder.in]]  ['uri' [%s uri.ex.in]]
     ==
     out
   --
