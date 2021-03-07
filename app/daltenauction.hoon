@@ -73,6 +73,7 @@
   ^-  (quip card _this)
   ?+  path  (on-watch:def path)
     [%auctionsite ~]
+  ~&  >>>  "I'm being watched"
   :_  this
   ~[[%give %fact ~[path] [%json !>((json (produce-json:hc exhibits)))]]]
   ==
@@ -98,7 +99,7 @@
   ?.  =(~ (find [inc-ex]~ list-exhibits))
     ~&  >>>  "Duplicate Exhibit Blocked: {<inc-ex>}"
     `state
-  :-  ~
+  :-  ~[[%give %fact ~[/auctionsite] [%json !>((json (produce-json:hc exhibits)))]]]
   %=  state
   exhibits      (~(put by exhibits) next-ex [inc-ex min-bid.inc-ex '~dalten Collection'])
   current-bids  (~(put by current-bids) inc-ex `bids:daltenauction`(my :~([0 [0 'dalten@daltencollective.org' min-bid.inc-ex]])))
@@ -117,7 +118,7 @@
   ?.  (gth bid top-bid:(~(got by exhibits) item))
     ~&  >>>  "Inadequate Bid - bid {<bid>} less than current top bid"
     `state
-  :-  ~
+  :-  ~[[%give %fact ~[/auctionsite] [%json !>((json (produce-json:hc exhibits)))]]]
   %=  state
   exhibits      (~(put by exhibits) update-exhibits-map)
   current-bids  (~(put by current-bids) -:add-bid +:add-bid)
@@ -162,7 +163,7 @@
     ['id' (numb:enjs:format id.in)]    ['title' [%s title.ex.in]]
     ['image' [%s img.ex.in]]           ['chain' [%s cur.ex.in]]
     ['artist' [%s artist.ex.in]]       ['topBid' (numb:enjs:format top-bid.in)]
-    ['topBidder' [%s top-bidder.in]]  ['uri' [%s uri.ex.in]]
+    ['topBidder' [%s top-bidder.in]]
     ==
     out
   --
