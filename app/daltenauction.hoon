@@ -99,7 +99,7 @@
   ?.  =(~ (find [inc-ex]~ list-exhibits))
     ~&  >>>  "Duplicate Exhibit Blocked: {<inc-ex>}"
     `state
-  :-  ~[[%give %fact ~[/auctionsite] [%json !>((json (produce-json:hc exhibits)))]]]
+  :-  ~[[%give %fact ~[/auctionsite] [%json !>((json (produce-json exhibits)))]]]
   %=  state
   exhibits      (~(put by exhibits) next-ex [inc-ex min-bid.inc-ex '~dalten Collection'])
   current-bids  (~(put by current-bids) inc-ex `bids:daltenauction`(my :~([0 [0 'dalten@daltencollective.org' min-bid.inc-ex]])))
@@ -118,7 +118,7 @@
   ?.  (gth bid top-bid:(~(got by exhibits) item))
     ~&  >>>  "Inadequate Bid - bid {<bid>} less than current top bid"
     `state
-  :-  ~[[%give %fact ~[/auctionsite] [%json !>((json (produce-json:hc exhibits)))]]]
+  :-  ~[[%give %fact ~[/auctionsite] [%json !>((json (produce-json exhibits)))]]]
   %=  state
   exhibits      (~(put by exhibits) update-exhibits-map)
   current-bids  (~(put by current-bids) -:add-bid +:add-bid)
