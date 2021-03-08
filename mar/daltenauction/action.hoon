@@ -11,11 +11,14 @@
     |=  jon=^json
     %-  action:daltenauction
     =<
+    ~&  >  jon
+    ~&  >  (action jon)
     (action jon)
     |%
     ++  action
       %-  of
-      :~  [%add-item ni]
+      :~  [%bid-item (ot :~(['email' so] ['exhibit-id' ni] ['bid-amt' ni]))]
+          [%add-bidder (ot :~(['email' so] ['nick' so]))]
       ==
     --
   --
