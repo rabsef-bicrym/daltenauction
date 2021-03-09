@@ -11,7 +11,6 @@
     |=  jon=^json
     %-  action:daltenauction
     =<
-    ~&  >  jon
     ~&  >  (action jon)
     (action jon)
     |%
