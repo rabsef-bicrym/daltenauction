@@ -25,8 +25,11 @@
 ++  on-init
   ^-  (quip card _this)
   ~&  >  '%daltenauction app is online'
+  =/  dalten-auction  [%file-server-action !>([%serve-dir /'~auction' /app/daltenauction %.n %.n])]
   =.  state  [%0 `exhibits:daltenauction`~ `current-bids:daltenauction`~ `biddermap:daltenauction`(my :~([0 ['dalten@daltencollective.org' '~dalten Collection']])) %.n]
-  `this
+  :_  this
+  :~  [%pass /srv %agent [our.bowl %file-server] %poke daltenauction]
+  ==
 ++  on-save
   ^-  vase 
   !>(state)
