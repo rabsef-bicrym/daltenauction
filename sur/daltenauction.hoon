@@ -7,6 +7,7 @@
   $%
   [%add-item =exhibit]
   [%bid-item email=@tU exhibit-id=@ud bid-amt=@ud]
+  [%bid-item-json email=@tU exhibit-id=@ud bid-amt=@tU]
   [%add-bidder email=@tU nick=@tU]
   [%start-over check=?]
   [%allow-bidding ~]

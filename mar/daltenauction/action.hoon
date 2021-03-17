@@ -16,7 +16,7 @@
     |%
     ++  action
       %-  of
-      :~  [%bid-item (ot :~(['email' so] ['exhibit-id' ni] ['bid-amt' ni]))]
+      :~  [%bid-item-json (ot :~(['email' so] ['exhibit-id' ni] ['bid-amt' so]))]
           [%add-bidder (ot :~(['email' so] ['nick' so]))]
       ==
     --
